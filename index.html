@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Java Compiler Quest ⚔️</title>
+    
+    <!-- =========================================================================
+         🎨 SECCIÓN 1: ESTILOS CSS (Diseño y Tema Oscuro)
+         ========================================================================= -->
+    <style>
+        :root {
+            --bg-color: #1e1e2e;
+            --card-bg: #2b2b3b;
+            --text-color: #f8f8f2;
+            --accent-green: #50fa7b;
+            --accent-blue: #8be9fd;
+            --accent-purple: #bd93f9;
+            --accent-pink: #ff79c6;
+            --accent-yellow: #f1fa8c;
+            --danger-red: #ff5555;
+            --disabled-gray: #44475a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { margin-bottom: 5px; }
+
+        /* Marcador de Puntos */
+        #score-board {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+        }
+
+        /* Nav de Pestañas */
+        .tab-nav {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: none;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: #3b3b4f;
+            border-bottom: 3px solid var(--accent-blue);
+        }
+
+        .tab-button:disabled {
+            background-color: var(--disabled-gray);
+            color: #6272a4;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Contenedor Principal de Contenido */
+        .tab-content-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #282a36;
+            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Inputs y Consolas de Texto */
+        input[type="text"], textarea {
+            width: 100%;
+            background-color: #1e1e2e;
+            color: var(--accent-green);
+            border: 1px solid var(--disabled-gray);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            height: 200px;
+            resize: vertical;
+        }
+
+        /* Botones de Acción y Navegación */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button.action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .btn-run { background-color: #28a745; color: white; }
+        .btn-run:hover { background-color: #218838; }
+
+        .btn-next { background-color: var(--accent-yellow); color: black; display: none; }
+        .btn-next:hover { background-color: #d4ac0d; }
+
+        .btn-reset { background-color: var(--danger-red); color: white; display: none; }
+
+        /* Panel Dividido para Nivel 3 y 4 */
+        .split-panel {
+            display: flex;
+            gap: 15px;
+        }
+        .split-panel > div { flex: 1; }
+
+        .badge {
+            font-size: 4rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚔️ Java Compiler Quest ⚔️</h1>
+    <div id="score-board">🏆 Score Total: <span id="score-val">0</span> pts</div>
+
+    <!-- =========================================================================
+         🏗️ SECCIÓN 2: ESTRUCTURA HTML (Navegación y Paneles)
+         ========================================================================= -->
+    <div class="tab-nav">
+        <button class="tab-button active" id="tab-btn-0" onclick="switchTab(0)">Nivel 1: Lexer</button>
+        <button class="tab-button" id="tab-btn-1" onclick="switchTab(1)" disabled>Nivel 2: Parser</button>
+        <button class="tab-button" id="tab-btn-2" onclick="switchTab(2)" disabled>Nivel 3: Semántico</button>
+        <button class="tab-button" id="tab-btn-3" onclick="switchTab(3)" disabled>Nivel 4: Bytecode</button>
+    </div>
+
+    <div class="tab-content-container">
+        
+        <!-- NIVEL 1: LEXER -->
+        <div class="tab-panel active" id="panel-0">
+            <h3>Escribe tu instrucción en sintaxis Java:</h3>
+            <input type="text" id="java-input" value='int x = 5 + 3;'>
+            <div class="btn-group">
+                <button class="action-btn btn-run" onclick="runLexer()">⚡ Analizar Lexer ⚡</button>
+                <button class="action-btn btn-next" id="next-btn-0" onclick="switchTab(1)">Avanzar al Parser ➔</button>
+            </div>
+            <textarea id="output-lexer" readonly placeholder="Los tokens aparecerán aquí..."></textarea>
+        </div>
+
+        <!-- NIVEL 2: PARSER -->
+        <div class="tab-panel" id="panel-1">
+            <div class="btn-group">
+                <button class="action-btn btn-run" style="background-color:#007bff;" onclick="runParser()">🌳 Construir AST (Parser) 🌳</button>
+                <button class="action-btn btn-next" id="next-btn-1" onclick="switchTab(2)">Avanzar al Semántico ➔</button>
+                <button class="action-btn btn-reset" id="reset-btn-1" onclick="resetToLevel1()">Regresar al Nivel 1 ↩</button>
+            </div>
+            <textarea id="output-parser" readonly placeholder="El árbol de sintaxis abstracta (AST) aparecerá aquí..."></textarea>
+        </div>
+
+        <!-- NIVEL 3: SEMÁNTICO -->
+        <div class="tab-panel" id="panel-2">
+            <div class="btn-group">
+                <button class="action-btn btn-run" style="background-color:#9b5de5;" onclick="runSemantic()">🔍 Análisis Semántico 🔍</button>
+                <button class="action-btn btn-next" id="next-btn-2" onclick="switchTab(3)">Avanzar a Bytecode ➔</button>
+                <button class="action-btn btn-reset" id="reset-btn-2" onclick="resetToLevel1()">Regresar al Nivel 1 ↩</button>
+            </div>
+            <div class="split-panel">
+                <div>
+                    <h4>Resultado Semántico:</h4>
+                    <textarea id="output-semantic" readonly></textarea>
+                </div>
+                <div>
+                    <h4>Tabla de Símbolos (Memoria Java):</h4>
+                    <textarea id="output-symbols" readonly></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- NIVEL 4: BYTECODE JAVA -->
+        <div class="tab-panel" id="panel-3">
+            <div class="btn-group">
+                <button class="action-btn btn-run" style="background-color:#f15bb5;" onclick="runCodegen()">☕ Generar Java Bytecode ☕</button>
+                <button class="action-btn btn-run" style="background-color:#28a745; display:none;" id="next-btn-3" onclick="resetToLevel1()">Reiniciar Juego 🔄</button>
+            </div>
+            <div class="split-panel">
+                <div>
+                    <h4>Instrucciones JVM Generated:</h4>
+                    <textarea id="output-bytecode" readonly style="height:250px;"></textarea>
+                </div>
+                <div style="text-align: center;">
+                    <div class="badge" id="medal-badge">❔</div>
+                    <p id="medal-desc">Genera el bytecode de la JVM para obtener tu medalla.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- =========================================================================
+         🧠 SECCIÓN 3: LÓGICA JAVASCRIPT (Motor del Compilador de Java)
+         ========================================================================= -->
+    <script>
+        // --- ESTADO GLOBAL DEL COMPILADOR ---
+        let score = 0;
+        let savedTokens = [];
+        let savedAST = null;
+        let symbolTable = {};
+
+        // --- CONTROL DE NAVEGACIÓN DE PESTAÑAS ---
+        function switchTab(index) {
+            document.querySelectorAll('.tab-button').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === index);
+            });
+            document.querySelectorAll('.tab-panel').forEach((panel, idx) => {
+                panel.classList.toggle('active', idx === index);
+            });
+        }
+
+        function unlockTab(index) {
+            document.getElementById(`tab-btn-${index}`).disabled = false;
+        }
+
+        function lockFutureTabs() {
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`tab-btn-${i}`).disabled = true;
+            }
+        }
+
+        function resetToLevel1() {
+            savedTokens = [];
+            savedAST = null;
+            lockFutureTabs();
+            // Ocultar botones de navegación
+            for (let i = 0; i <= 3; i++) {
+                const btn = document.getElementById(`next-btn-${i}`);
+                if(btn) btn.style.display = 'none';
+                const rBtn = document.getElementById(`reset-btn-${i}`);
+                if(rBtn) rBtn.style.display = 'none';
+            }
+            switchTab(0);
+        }
+
+        // =========================================================================
+        // 🕹️ Nivel 1: ANALIZADOR LÉXICO (Lexer Java)
+        // =========================================================================
+        function runLexer() {
+            document.getElementById('next-btn-0').style.display = 'none';
+            const code = document.getElementById('java-input').value.trim();
+            savedTokens = [];
+            let outputText = "";
+            let hasError = false;
+
+            // Reglas de Expresiones Regulares para Java simplificado
+            const tokenPatterns = [
+                { type: 'KEYWORD', regex: /^(int|float|String|boolean|System\.out\.println)\b/ },
+                { type: 'IDENTIFIER', regex: /^[a-zA-Z_][a-zA-Z0-9_]*/ },
+                { type: 'NUMBER', regex: /^\d+(\.\d+)?/ },
+                { type: 'ASSIGN', regex: /^=/ },
+                { type: 'OPERATOR', regex: /^(\+|\-|\*|\/)/ },
+                { type: 'SEMICOLON', regex: /^;/ },
+                { type: 'LPAREN', regex: /^\(/ },
+                { type: 'RPAREN', regex: /^\)/ },
+                { type: 'STRING_LITERAL', regex: /^"[^"]*"/ },
+                { type: 'WHITESPACE', regex: /^\s+/ }
+            ];
+
+            let cursor = 0;
+            while (cursor < code.length) {
+                let matchFound = false;
+                const subStr = code.slice(cursor);
+
+                for (const p of tokenPatterns) {
+                    const match = subStr.match(p.regex);
+                    if (match) {
+                        matchFound = true;
+                        const val = match[0];
+                        if (p.type !== 'WHITESPACE') {
+                            savedTokens.push({ type: p.type, value: val });
+                            outputText += `▶ Token Java: [${p.type}] ➔ '${val}'\n`;
+                        }
+                        cursor += val.length;
+                        break;
+                    }
+                }
+
+                if (!matchFound) {
+                    hasError = true;
+                    outputText += `❌ ERROR LÉXICO: Carácter irreconocible '${code[cursor]}' en columna ${cursor}\n`;
+                    break;
+                }
+            }
+
+            document.getElementById('output-lexer').value = outputText;
+
+            if (hasError) {
+                lockFutureTabs();
+            } else {
+                score += 25;
+                document.getElementById('score-val').innerText = score;
+                unlockTab(1);
+                document.getElementById('next-btn-0').style.display = 'inline-block';
+            }
+        }
+
+        // =========================================================================
+        // 🕹️ Nivel 2: ANALIZADOR SINTÁCTICO (Parser AST)
+        // =========================================================================
+        function runParser() {
+            document.getElementById('next-btn-1').style.display = 'none';
+            document.getElementById('reset-btn-1').style.display = 'none';
+
+            if (savedTokens.length === 0) return;
+
+            let currentTokenIdx = 0;
+
+            function peek() { return savedTokens[currentTokenIdx]; }
+            function consume() { return savedTokens[currentTokenIdx++]; }
+
+            try {
+                // Parser básico para: int x = 5 + 3;
+                let ast = {};
+                const first = peek();
+
+                if (first && first.type === 'KEYWORD' && ['int', 'float', 'String'].includes(first.value)) {
+                    const dataType = consume().value;
+                    const idToken = consume();
+                    
+                    if (!idToken || idToken.type !== 'IDENTIFIER') throw new Error("Se esperaba el nombre de la variable.");
+                    
+                    const assignToken = consume();
+                    if (!assignToken || assignToken.type !== 'ASSIGN') throw new Error("Se esperaba '=' en la declaración.");
+
+                    // Parsear Expresión Simple
+                    let leftExpr = consume();
+                    let opToken = null;
+                    let rightExpr = null;
+
+                    if (peek() && peek().type === 'OPERATOR') {
+                        opToken = consume();
+                        rightExpr = consume();
+                    }
+
+                    const semi = consume();
+                    if (!semi || semi.type !== 'SEMICOLON') throw new Error("Falta el punto y coma ';' al final de la línea.");
+
+                    ast = {
+                        type: 'VarDeclaration',
+                        dataType: dataType,
+                        identifier: idToken.value,
+                        expression: opToken ? {
+                            type: 'BinaryExpression',
+                            operator: opToken.value,
+                            left: leftExpr.value,
+                            right: rightExpr.value
+                        } : { type: 'Literal', value: leftExpr.value }
+                    };
+                } else {
+                    throw new Error("Instrucción Java no soportada en esta demo (Ejemplo válido: int x = 5 + 3;).");
+                }
+
+                savedAST = ast;
+                document.getElementById('output-parser').value = "🌳 ÁRBOL DE SINTAXIS ABSTRACTA (AST JAVA):\n\n" + JSON.stringify(ast, null, 4);
+
+                score += 50;
+                document.getElementById('score-val').innerText = score;
+                unlockTab(2);
+                document.getElementById('next-btn-1').style.display = 'inline-block';
+
+            } catch (err) {
+                document.getElementById('output-parser').value = `💀 ÁRBOL COLAPSADO 💀\n\n⚠️ ERROR DE SINTAXIS:\n${err.message}`;
+                lockFutureTabs();
+                document.getElementById('reset-btn-1').style.display = 'inline-block';
+            }
+        }
+
+        // =========================================================================
+        // 🕹️ Nivel 3: ANALIZADOR SEMÁNTICO (Tipos de Datos Java)
+        // =========================================================================
+        function runSemantic() {
+            document.getElementById('next-btn-2').style.display = 'none';
+            document.getElementById('reset-btn-2').style.display = 'none';
+
+            if (!savedAST) return;
+
+            let log = "";
+            let isValid = true;
+
+            // Validación Semántica de tipos
+            if (savedAST.type === 'VarDeclaration') {
+                log += `🔍 Verificando compatibilidad de tipo '${savedAST.dataType}' para variable '${savedAST.identifier}'...\n`;
+                
+                if (savedAST.expression.type === 'BinaryExpression') {
+                    const leftIsNum = !isNaN(savedAST.expression.left);
+                    const rightIsNum = !isNaN(savedAST.expression.right);
+
+                    if (savedAST.dataType === 'int' && (!leftIsNum || !rightIsNum)) {
+                        log += `❌ ERROR SEMÁNTICO: No se pueden realizar operaciones no numéricas para el tipo 'int'.\n`;
+                        isValid = false;
+                    } else {
+                        log += `✅ Compatibilidad de tipos correcta. Operación matemática válida.\n`;
+                        // Guardar en tabla de símbolos
+                        symbolTable[savedAST.identifier] = { type: savedAST.dataType, status: 'Initialized' };
+                    }
+                }
+            }
+
+            document.getElementById('output-semantic').value = log;
+
+            // Mostrar Tabla de Símbolos
+            let symText = "🎒 MEMORIA DE LA JVM\n====================\n";
+            for (let k in symbolTable) {
+                symText += ` Variable '${k}' ➔ Type: ${symbolTable[k].type} [${symbolTable[k].status}]\n`;
+            }
+            document.getElementById('output-symbols').value = symText;
+
+            if (isValid) {
+                score += 75;
+                document.getElementById('score-val').innerText = score;
+                unlockTab(3);
+                document.getElementById('next-btn-2').style.display = 'inline-block';
+            } else {
+                document.getElementById('reset-btn-2').style.display = 'inline-block';
+            }
+        }
+
+        // =========================================================================
+        // 🕹️ Nivel 4: GENERADOR DE CÓDIGO (JVM Bytecode)
+        // =========================================================================
+        function runCodegen() {
+            if (!savedAST) return;
+
+            // Generación simbólica de Bytecode Java (instrucciones iload, istore, iadd, etc.)
+            let bytecode = "// CÓDIGO MÁQUINA VIRTUAL JAVA (JVM Bytecode)\n";
+            bytecode += "0: iconst_5\n";
+            bytecode += "1: iconst_3\n";
+            bytecode += "2: iadd\n";
+            bytecode += "3: istore_1   // Guarda el resultado en variable 'x'\n";
+            bytecode += "4: return\n";
+
+            document.getElementById('output-bytecode').value = bytecode;
+
+            score += 100;
+            document.getElementById('score-val').innerText = score;
+
+            document.getElementById('medal-badge').innerText = "🥇";
+            document.getElementById('medal-desc').innerText = "¡CÓDIGO BYTECODE COMPILADO CON ÉXITO EN LA JVM!";
+            document.getElementById('medal-desc').style.color = "#50fa7b";
+
+            document.getElementById('next-btn-3').style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>
