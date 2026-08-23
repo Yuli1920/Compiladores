@@ -2,5 +2,5 @@
 
 Integrantes del grupo
 
-Yuli Katerine Lipez Capacho
-Juan David Villalobos
+# Yuli Katerine Lipez Capacho
+# Juan David Villalobos
